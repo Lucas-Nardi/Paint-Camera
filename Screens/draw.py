@@ -17,20 +17,21 @@ class PaintScreen(QtWidgets.QWidget):
 
     toEdition = QtCore.pyqtSignal()
     toInitial = QtCore.pyqtSignal()
-    stopDrawing = False
+    drawing = False
     imgResult = None
                 # [hue_min, saturation_min, value_min, hue_max, saturation_max, value_max]
     paintBrush = [ [149, 157, 0, 179, 255, 255] ]      # The object data the camera can capture with this range channel de camera
     
     correntColor = [ [0,0,0] ]   # BGR color format, the color that im using to paint
                   
-    myPoints =  []  ## [x , y , colorId ] All points of my draw
+    myPoints =  []  ## [x , y , [B, G, R], size ] All points of my draw
 
+    idPointColor = 0;
 
     # the colors is in B G R pattern
     favoritesColor =[ [15, 196, 241], [39, 174, 96], [219, 152, 52], [173, 68, 142], 
                       
-                      [60, 76, 231 ], [34, 126, 230], [171, 178, 185 ], [94, 73, 52] ]
+                      [60, 76, 231 ], [34, 126, 230], [171, 178, 185 ], [94, 73, 52] ]       
 
     def __init__(self):
         super().__init__()
@@ -40,11 +41,11 @@ class PaintScreen(QtWidgets.QWidget):
 
         # create a timer
         self.timer = QTimer()
+        self.canIDraw()
         # set timer timeout callback function
         self.timer.timeout.connect(self.viewCam)
         # set control_bt callback clicked  function
         
-        self.controlTimer()
         self.ui.screen.setPixmap(QtGui.QPixmap(BACKGROUND))           
 
         self.ui.save_draw_button.clicked.connect(self.initialScreen)
@@ -216,43 +217,83 @@ class PaintScreen(QtWidgets.QWidget):
 
         # view camera
     
+    def keyPressEvent(self, event):
+
+        print(event.keyPress)
+
     def viewCam(self):
 
-        ret, self.image = self.cap.read()
-                
-        self.image = cv2.flip(self.image, 1)
+        if(self.drawing):
 
-        #if(self.stopDrawing == True):
+            ret, self.image = self.cap.read()
+                    
+            self.image = cv2.flip(self.image, 1)
+
+            #if(self.stopDrawing == True):
+
+            s = self.findColor(self.image, self.paintBrush, self.correntColor)
+
+            if len(s)!=0:
+                for newP in s:                
+                    self.myPoints.append(newP)
+        
+            if len(self.myPoints)!=0:
+                self.drawOnCanvas(self.myPoints)
+
+
+            # read image in BGR format
+            # convert image to RGB format
+            self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+            # get image infos
+            height, width, channel = self.image.shape
+            step = channel * width
+            # create QImage from image
+            qImg = QImage(self.image.data, width, height, step, QImage.Format_RGB888)
+            # show image in img_label
+            self.ui.screen.setPixmap(QPixmap.fromImage(qImg))
+
+    def drawOnCanvas(self,myPoints):
+    
+        #self.image = cv2.imread(BACKGROUND)
+        for point in myPoints:       # X        Y            Size                              Color
             
-        newPoints = self.findColor(self.image, self.paintBrush, self.correntColor)
-        if len(newPoints)!=0:
-            for newP in newPoints:
-                self.myPoints.append(newP)
-        if len(self.myPoints)!=0:
-            self.drawOnCanvas(self.myPoints,self.correntColor)
+            cv2.circle(self.image, (point[0], point[1]), point[3], point[2] , cv2.FILLED)
 
-        # read image in BGR format
-        # convert image to RGB format
-        self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
-        # get image infos
-        height, width, channel = self.image.shape
-        step = channel * width
-        # create QImage from image
-        qImg = QImage(self.image.data, width, height, step, QImage.Format_RGB888)
-        # show image in img_label
-        self.ui.screen.setPixmap(QPixmap.fromImage(qImg))
+    def findColor(self,img,paintBrush,correntColor):
+    
+
+        imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        newPoint=[]
+        size = self.ui.brush_paint_size.value()
+      
+        cor = [self.ui.blue_channel.value(), self.ui.green_channel.value(),self.ui.red_channel.value()]
+
+        for color in paintBrush:
+            lower = np.array(color[0:3])
+            upper = np.array(color[3:6])
+            mask = cv2.inRange(imgHSV,lower,upper)
+            x,y= self.getContours(mask)
+            
+            #cv2.circle(self.image,(x,y),size, correntColor[0],cv2.FILLED) # Cursor do Pincel 
+            
+            if (x!=0 and y!=0):  # Mem count colocar quanl é a cor atual
+                newPoint.append([x,y,cor,size])
+                self.idPointColor = self.idPointColor + 1
+                                
+
+        return newPoint
 
     def take_photo(self):
             
         self.image =  cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         cv2.imwrite("./image/drawing/draw.jpg", self.image)
         self.ui.screen.setPixmap(QtGui.QPixmap("./image/drawing/draw.jpg"))
-        self.ui.editar.setEnabled(True)
+        #self.ui.editar.setEnabled(True)
 
     def controlTimer(self):
         # if timer is stopped
         
-        if not self.timer.isActive():
+        if (not self.timer.isActive() and self.drawing):
 
             # create video capture
             self.cap = cv2.VideoCapture(0)
@@ -270,33 +311,16 @@ class PaintScreen(QtWidgets.QWidget):
 
     def canIDraw(self):
     
-        if(self.stopDrawing == False):
-            self.stopDrawing = True
+        if(self.drawing == False):
             
-        else:
-            self.stopDrawing = False
-            del self.myPoints [:]  # Deletar todos os pontos que desenhei
-
-    def findColor(self,img,paintBrush,correntColor):
-
-
-        imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        count = 0
-        newPoints=[]
-        for color in paintBrush:
-            lower = np.array(color[0:3])
-            upper = np.array(color[3:6])
-            mask = cv2.inRange(imgHSV,lower,upper)
-            x,y= self.getContours(mask)
-            cv2.circle(self.image,(x,y),15,correntColor[count],cv2.FILLED)
-            
-            if (x!=0 and y!=0):  # Mem count colocar quanl é a cor atual
-
-                newPoints.append([x,y,count])
-            count +=1
+            self.drawing = True
+            self.controlTimer()
         
-        return newPoints
- 
+        else:
+
+            self.drawing = False           
+            self.controlTimer()
+
     def getContours(self,img):
         contours,hierarchy = cv2.findContours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
         x,y,w,h = 0,0,0,0
@@ -308,11 +332,4 @@ class PaintScreen(QtWidgets.QWidget):
                 x, y, w, h = cv2.boundingRect(approx)
         
         return x+w//2,y
- 
-    def drawOnCanvas(self,myPoints,correntColor):
-
-        self.image = cv2.imread(BACKGROUND)
-        
-        for point in myPoints:  
-            cv2.circle(self.image, (point[0], point[1]), self.ui.brush_paint_size.value(), correntColor[point[2]], cv2.FILLED)
  
