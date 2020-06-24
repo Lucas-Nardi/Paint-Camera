@@ -6,12 +6,13 @@ from PyQt5.QtCore import QTimer
 # import some PyQt5 modules
 from PyQt5.QtGui import QImage
 from PyQt5.QtGui import QPixmap
+from PyQt5.Qt import Qt
 
 from Qt_Forms.paintScreenForms import Ui_Form
 from PyQt5 import QtCore, QtWidgets
 
 
-BACKGROUND = "../Image/drawing/background.jpg"
+BACKGROUND = "./Image/drawing/background.jpg"
 
 class PaintScreen(QtWidgets.QWidget):
 
@@ -31,7 +32,11 @@ class PaintScreen(QtWidgets.QWidget):
     # the colors is in B G R pattern
     favoritesColor =[ [15, 196, 241], [39, 174, 96], [219, 152, 52], [173, 68, 142], 
                       
-                      [60, 76, 231 ], [34, 126, 230], [171, 178, 185 ], [94, 73, 52] ]       
+                      [60, 76, 231 ], [34, 126, 230], [171, 178, 185 ], [94, 73, 52] ]      
+
+    toErase = False 
+    eraseX = 0
+    eraseY = 0
 
     def __init__(self):
         super().__init__()
@@ -70,6 +75,10 @@ class PaintScreen(QtWidgets.QWidget):
         # Brush Paint 
         self.ui.brush_paint_size.valueChanged.connect(self.brushSize)
 
+        #Erase button
+        self.ui.erase_button.clicked.connect(self.erase)
+
+
         # Rotation 
         self.ui.rotation_slider.valueChanged.connect(self.rotation)
 
@@ -86,6 +95,7 @@ class PaintScreen(QtWidgets.QWidget):
     
     def takeMyFavoriteColo1(self):    
 
+        self.toErase = False
         self.correntColor[0][0] = self.favoritesColor[0][0]  # B
         self.correntColor[0][1] = self.favoritesColor[0][1]  # G
         self.correntColor[0][2] = self.favoritesColor[0][2]  # R
@@ -97,6 +107,7 @@ class PaintScreen(QtWidgets.QWidget):
 
     def takeMyFavoriteColo2(self):    
 
+        self.toErase = False
         self.correntColor[0][0] = self.favoritesColor[1][0]
         self.correntColor[0][1] = self.favoritesColor[1][1]
         self.correntColor[0][2] = self.favoritesColor[1][2]
@@ -108,6 +119,7 @@ class PaintScreen(QtWidgets.QWidget):
 
     def takeMyFavoriteColo3(self):    
 
+        self.toErase = False
         self.correntColor[0][0] = self.favoritesColor[2][0] # B
         self.correntColor[0][1] = self.favoritesColor[2][1] # G
         self.correntColor[0][2] = self.favoritesColor[2][2] # R
@@ -119,6 +131,7 @@ class PaintScreen(QtWidgets.QWidget):
 
     def takeMyFavoriteColo4(self):    
 
+        self.toErase = False
         self.correntColor[0][0] = self.favoritesColor[3][0]
         self.correntColor[0][1] = self.favoritesColor[3][1]
         self.correntColor[0][2] = self.favoritesColor[3][2]
@@ -131,6 +144,7 @@ class PaintScreen(QtWidgets.QWidget):
 
     def takeMyFavoriteColo5(self):    
 
+        self.toErase = False
         self.correntColor[0][0] = self.favoritesColor[4][0]
         self.correntColor[0][1] = self.favoritesColor[4][1]
         self.correntColor[0][2] = self.favoritesColor[4][2]
@@ -142,6 +156,7 @@ class PaintScreen(QtWidgets.QWidget):
 
     def takeMyFavoriteColo6(self):    
 
+        self.toErase = False
         self.correntColor[0][0] = self.favoritesColor[5][0]
         self.correntColor[0][1] = self.favoritesColor[5][1]
         self.correntColor[0][2] = self.favoritesColor[5][2]
@@ -153,6 +168,7 @@ class PaintScreen(QtWidgets.QWidget):
 
     def takeMyFavoriteColo7(self):    
 
+        self.toErase = False
         self.correntColor[0][0] = self.favoritesColor[6][0]
         self.correntColor[0][1] = self.favoritesColor[6][1]
         self.correntColor[0][2] = self.favoritesColor[6][2]
@@ -164,6 +180,7 @@ class PaintScreen(QtWidgets.QWidget):
 
     def takeMyFavoriteColo8(self):    
 
+        self.toErase = False
         self.correntColor[0][0] = self.favoritesColor[7][2]
         self.correntColor[0][1] = self.favoritesColor[7][1]
         self.correntColor[0][2] = self.favoritesColor[7][0]
@@ -173,8 +190,12 @@ class PaintScreen(QtWidgets.QWidget):
         self.ui.green_channel.setValue(self.favoritesColor[7][1])
         self.ui.blue_channel.setValue(self.favoritesColor[7][0])
 
+    def erase(self):
+        self.toErase = True
+
     def channelRed(self):
         
+        self.toErase = False
         _translate = QtCore.QCoreApplication.translate
         value = self.ui.red_channel.value()
         self.correntColor[0][2] = value
@@ -183,6 +204,7 @@ class PaintScreen(QtWidgets.QWidget):
                                 
     def channelGreen(self):
         
+        self.toErase = False
         _translate = QtCore.QCoreApplication.translate
         value = self.ui.green_channel.value()
         self.correntColor[0][1] = value
@@ -191,6 +213,7 @@ class PaintScreen(QtWidgets.QWidget):
     
     def channelBlue(self):
         
+        self.toErase = False
         _translate = QtCore.QCoreApplication.translate
         value = self.ui.blue_channel.value()
         self.correntColor[0][0] = value
@@ -219,46 +242,63 @@ class PaintScreen(QtWidgets.QWidget):
     
     def keyPressEvent(self, event):
 
-        print(event.keyPress)
+        if(event.key() == 81):
+            self.canIDraw()
+
+        
 
     def viewCam(self):
 
-        if(self.drawing):
+    
+        ret, self.image = self.cap.read()
+                
+        self.image = cv2.flip(self.image, 1)
 
-            ret, self.image = self.cap.read()
-                    
-            self.image = cv2.flip(self.image, 1)
+        #if(self.stopDrawing == True):
 
-            #if(self.stopDrawing == True):
+        s = self.findColor(self.image, self.paintBrush, self.correntColor)
 
-            s = self.findColor(self.image, self.paintBrush, self.correntColor)
-
-            if len(s)!=0:
-                for newP in s:                
-                    self.myPoints.append(newP)
-        
-            if len(self.myPoints)!=0:
-                self.drawOnCanvas(self.myPoints)
+        if ( s != None and len(s) !=0) :
+            for newP in s:                
+                self.myPoints.append(newP)
+    
+        if (len(self.myPoints)!=0 ):
+            self.drawOnCanvas(self.myPoints)
 
 
-            # read image in BGR format
-            # convert image to RGB format
-            self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
-            # get image infos
-            height, width, channel = self.image.shape
-            step = channel * width
-            # create QImage from image
-            qImg = QImage(self.image.data, width, height, step, QImage.Format_RGB888)
-            # show image in img_label
-            self.ui.screen.setPixmap(QPixmap.fromImage(qImg))
+        # read image in BGR format
+        # convert image to RGB format
+        self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        # get image infos
+        height, width, channel = self.image.shape
+        step = channel * width
+        # create QImage from image
+        qImg = QImage(self.image.data, width, height, step, QImage.Format_RGB888)
+        # show image in img_label
+        self.ui.screen.setPixmap(QPixmap.fromImage(qImg))
 
     def drawOnCanvas(self,myPoints):
+        
     
-        #self.image = cv2.imread(BACKGROUND)
-        for point in myPoints:       # X        Y            Size                              Color
+        if(self.drawing):
             
-            cv2.circle(self.image, (point[0], point[1]), point[3], point[2] , cv2.FILLED)
+            self.image = cv2.imread(BACKGROUND)
+        
+            for point in myPoints:       # X        Y            Size                              Color
 
+                if(self.toErase == False):
+
+                    cv2.circle(self.image, (point[0], point[1]), point[3], point[2] , cv2.FILLED)
+                
+                else:
+                    
+                    if( point[0] >= (self.eraseX - self.ui.brush_paint_size.value()) and point[0] <= (self.eraseX + self.ui.brush_paint_size.value())  and point[1] >= (self.eraseY - self.ui.brush_paint_size.value()) and point[1] <= (self.eraseY + self.ui.brush_paint_size.value())):
+                        myPoints.remove(point)
+
+                    else:
+
+                        cv2.circle(self.image, (point[0], point[1]), point[3], point[2] , cv2.FILLED)
+                      
     def findColor(self,img,paintBrush,correntColor):
     
 
@@ -274,12 +314,18 @@ class PaintScreen(QtWidgets.QWidget):
             mask = cv2.inRange(imgHSV,lower,upper)
             x,y= self.getContours(mask)
             
-            #cv2.circle(self.image,(x,y),size, correntColor[0],cv2.FILLED) # Cursor do Pincel 
-            
-            if (x!=0 and y!=0):  # Mem count colocar quanl é a cor atual
-                newPoint.append([x,y,cor,size])
-                self.idPointColor = self.idPointColor + 1
-                                
+            if(self.toErase == False):
+
+                if (x!=0 and y!=0):  # Mem count colocar quanl é a cor atual
+                    newPoint.append([x,y,cor,size])
+                    self.idPointColor = self.idPointColor + 1
+
+            else:
+                
+                cv2.circle(self.image,(x,y),size, [255,255,255],cv2.FILLED) # Cursor do Pincel 
+                self.eraseX = x
+                self.eraseY = y
+                return None 
 
         return newPoint
 
