@@ -19,21 +19,19 @@ class PaintScreen(QtWidgets.QWidget):
     toEdition = QtCore.pyqtSignal()
     toInitial = QtCore.pyqtSignal()
     drawing = False
-    imgResult = None
-                # [hue_min, saturation_min, value_min, hue_max, saturation_max, value_max]
-    paintBrush = [ [149, 157, 0, 179, 255, 255] ]      # The object data the camera can capture with this range channel de camera
+                    # [hue_min, saturation_min, value_min, hue_max, saturation_max, value_max]
+    paintBrush = [ [129, 157, 0, 179, 255, 255] ]      # The object data the camera can capture with this range channel de camera
     
     correntColor = [ [0,0,0] ]   # BGR color format, the color that im using to paint
                   
     myPoints =  []  ## [x , y , [B, G, R], size ] All points of my draw
-
-    idPointColor = 0;
 
     # the colors is in B G R pattern
     favoritesColor =[ [15, 196, 241], [39, 174, 96], [219, 152, 52], [173, 68, 142], 
                       
                       [60, 76, 231 ], [34, 126, 230], [171, 178, 185 ], [94, 73, 52] ]      
 
+    favorite = False
     toErase = False 
     eraseX = 0
     eraseY = 0
@@ -49,9 +47,7 @@ class PaintScreen(QtWidgets.QWidget):
         self.canIDraw()
         # set timer timeout callback function
         self.timer.timeout.connect(self.viewCam)
-        # set control_bt callback clicked  function
-        
-        self.ui.screen.setPixmap(QtGui.QPixmap(BACKGROUND))           
+        # set control_bt callback clicked  function           
 
         self.ui.save_draw_button.clicked.connect(self.initialScreen)
 
@@ -96,10 +92,19 @@ class PaintScreen(QtWidgets.QWidget):
     def takeMyFavoriteColo1(self):    
 
         self.toErase = False
-        self.correntColor[0][0] = self.favoritesColor[0][0]  # B
-        self.correntColor[0][1] = self.favoritesColor[0][1]  # G
-        self.correntColor[0][2] = self.favoritesColor[0][2]  # R
-        self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        if(self.favorite == True):
+            
+            self.favoritesColor[0][0] = self.correntColor[0][0]  # B
+            self.favoritesColor[0][1] = self.correntColor[0][1]   # G
+            self.favoritesColor[0][2]  = self.correntColor[0][2]   # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        else:
+            self.correntColor[0][0] = self.favoritesColor[0][0]  # B
+            self.correntColor[0][1] = self.favoritesColor[0][1]  # G
+            self.correntColor[0][2] = self.favoritesColor[0][2]  # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
         
         self.ui.red_channel.setValue(self.favoritesColor[0][2])
         self.ui.green_channel.setValue(self.favoritesColor[0][1])
@@ -108,22 +113,41 @@ class PaintScreen(QtWidgets.QWidget):
     def takeMyFavoriteColo2(self):    
 
         self.toErase = False
-        self.correntColor[0][0] = self.favoritesColor[1][0]
-        self.correntColor[0][1] = self.favoritesColor[1][1]
-        self.correntColor[0][2] = self.favoritesColor[1][2]
-        self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
-        
+
+        if(self.favorite == True):
+                
+            self.favoritesColor[1][0] = self.correntColor[0][0]  # B
+            self.favoritesColor[1][1] = self.correntColor[0][1]   # G
+            self.favoritesColor[1][2] = self.correntColor[0][2]   # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        else:
+
+            self.correntColor[0][0] = self.favoritesColor[1][0]
+            self.correntColor[0][1] = self.favoritesColor[1][1]
+            self.correntColor[0][2] = self.favoritesColor[1][2]
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+            
         self.ui.red_channel.setValue(self.favoritesColor[1][2])
         self.ui.green_channel.setValue(self.favoritesColor[1][1])
         self.ui.blue_channel.setValue(self.favoritesColor[1][0])
 
     def takeMyFavoriteColo3(self):    
-
         self.toErase = False
-        self.correntColor[0][0] = self.favoritesColor[2][0] # B
-        self.correntColor[0][1] = self.favoritesColor[2][1] # G
-        self.correntColor[0][2] = self.favoritesColor[2][2] # R
-        self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+        
+        if(self.favorite == True):
+                
+            self.favoritesColor[2][0] = self.correntColor[0][0]  # B
+            self.favoritesColor[2][1] = self.correntColor[0][1]   # G
+            self.favoritesColor[2][2] = self.correntColor[0][2]   # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        else:
+        
+            self.correntColor[0][0] = self.favoritesColor[2][0] # B
+            self.correntColor[0][1] = self.favoritesColor[2][1] # G
+            self.correntColor[0][2] = self.favoritesColor[2][2] # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
         
         self.ui.red_channel.setValue(self.favoritesColor[2][2])
         self.ui.green_channel.setValue(self.favoritesColor[2][1])
@@ -132,11 +156,19 @@ class PaintScreen(QtWidgets.QWidget):
     def takeMyFavoriteColo4(self):    
 
         self.toErase = False
-        self.correntColor[0][0] = self.favoritesColor[3][0]
-        self.correntColor[0][1] = self.favoritesColor[3][1]
-        self.correntColor[0][2] = self.favoritesColor[3][2]
-        self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
 
+        if(self.favorite == True):
+                
+            self.favoritesColor[3][0] = self.correntColor[0][0]  # B
+            self.favoritesColor[3][1] = self.correntColor[0][1]   # G
+            self.favoritesColor[3][2]  = self.correntColor[0][2]   # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        else:
+            self.correntColor[0][0] = self.favoritesColor[3][0]
+            self.correntColor[0][1] = self.favoritesColor[3][1]
+            self.correntColor[0][2] = self.favoritesColor[3][2]
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
         
         self.ui.red_channel.setValue(self.favoritesColor[3][2])
         self.ui.green_channel.setValue(self.favoritesColor[3][1])
@@ -145,10 +177,19 @@ class PaintScreen(QtWidgets.QWidget):
     def takeMyFavoriteColo5(self):    
 
         self.toErase = False
-        self.correntColor[0][0] = self.favoritesColor[4][0]
-        self.correntColor[0][1] = self.favoritesColor[4][1]
-        self.correntColor[0][2] = self.favoritesColor[4][2]
-        self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        if(self.favorite == True):
+                
+            self.favoritesColor[1][0] = self.correntColor[4][0]  # B
+            self.favoritesColor[1][1] = self.correntColor[4][1]   # G
+            self.favoritesColor[1][2]  = self.correntColor[4][2]   # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        else:
+            self.correntColor[0][0] = self.favoritesColor[4][0]
+            self.correntColor[0][1] = self.favoritesColor[4][1]
+            self.correntColor[0][2] = self.favoritesColor[4][2]
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
 
         self.ui.red_channel.setValue(self.favoritesColor[4][2])
         self.ui.green_channel.setValue(self.favoritesColor[4][1])
@@ -157,11 +198,21 @@ class PaintScreen(QtWidgets.QWidget):
     def takeMyFavoriteColo6(self):    
 
         self.toErase = False
-        self.correntColor[0][0] = self.favoritesColor[5][0]
-        self.correntColor[0][1] = self.favoritesColor[5][1]
-        self.correntColor[0][2] = self.favoritesColor[5][2]
-        self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")       
         
+        if(self.favorite == True):
+                
+            self.favoritesColor[1][0] = self.correntColor[5][0]  # B
+            self.favoritesColor[1][1] = self.correntColor[5][1]   # G
+            self.favoritesColor[1][2]  = self.correntColor[5][2]   # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        else:
+
+            self.correntColor[0][0] = self.favoritesColor[5][0]
+            self.correntColor[0][1] = self.favoritesColor[5][1]
+            self.correntColor[0][2] = self.favoritesColor[5][2]
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")       
+            
         self.ui.red_channel.setValue(self.favoritesColor[5][2])
         self.ui.green_channel.setValue(self.favoritesColor[5][1])
         self.ui.blue_channel.setValue(self.favoritesColor[5][0])
@@ -169,11 +220,21 @@ class PaintScreen(QtWidgets.QWidget):
     def takeMyFavoriteColo7(self):    
 
         self.toErase = False
-        self.correntColor[0][0] = self.favoritesColor[6][0]
-        self.correntColor[0][1] = self.favoritesColor[6][1]
-        self.correntColor[0][2] = self.favoritesColor[6][2]
-        self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
-        
+
+        if(self.favorite == True):
+                
+            self.favoritesColor[1][0] = self.correntColor[6][0]  # B
+            self.favoritesColor[1][1] = self.correntColor[6][1]   # G
+            self.favoritesColor[1][2]  = self.correntColor[6][2]   # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        else:
+
+            self.correntColor[0][0] = self.favoritesColor[6][0]
+            self.correntColor[0][1] = self.favoritesColor[6][1]
+            self.correntColor[0][2] = self.favoritesColor[6][2]
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+            
         self.ui.red_channel.setValue(self.favoritesColor[6][2])
         self.ui.green_channel.setValue(self.favoritesColor[6][1])
         self.ui.blue_channel.setValue(self.favoritesColor[6][0])
@@ -181,11 +242,21 @@ class PaintScreen(QtWidgets.QWidget):
     def takeMyFavoriteColo8(self):    
 
         self.toErase = False
-        self.correntColor[0][0] = self.favoritesColor[7][2]
-        self.correntColor[0][1] = self.favoritesColor[7][1]
-        self.correntColor[0][2] = self.favoritesColor[7][0]
-        self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
-        
+
+        if(self.favorite == True):
+                
+            self.favoritesColor[1][0] = self.correntColor[7][0]  # B
+            self.favoritesColor[1][1] = self.correntColor[7][1]   # G
+            self.favoritesColor[1][2]  = self.correntColor[7][2]   # R
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+
+        else:
+
+            self.correntColor[0][0] = self.favoritesColor[7][2]
+            self.correntColor[0][1] = self.favoritesColor[7][1]
+            self.correntColor[0][2] = self.favoritesColor[7][0]
+            self.ui.color.setStyleSheet("background-color: rgb(" + "{}".format(self.correntColor[0][2]) + "," + "{}".format(self.correntColor[0][1]) + "," + "{}".format(self.correntColor[0][0]) +")")
+            
         self.ui.red_channel.setValue(self.favoritesColor[7][2])
         self.ui.green_channel.setValue(self.favoritesColor[7][1])
         self.ui.blue_channel.setValue(self.favoritesColor[7][0])
@@ -242,10 +313,10 @@ class PaintScreen(QtWidgets.QWidget):
     
     def keyPressEvent(self, event):
 
-        if(event.key() == 81):
+        if(event.key() == 81):   # Keyboard equals 81 == 'q' keyboard
             self.canIDraw()
-
-        
+        elif(event.key() == 70):   # Keyboard equals 70 == 'f' keyboard
+            self.favorite = True
 
     def viewCam(self):
 
@@ -254,16 +325,13 @@ class PaintScreen(QtWidgets.QWidget):
                 
         self.image = cv2.flip(self.image, 1)
 
-        #if(self.stopDrawing == True):
-
         s = self.findColor(self.image, self.paintBrush, self.correntColor)
 
         if ( s != None and len(s) !=0) :
             for newP in s:                
                 self.myPoints.append(newP)
     
-        if (len(self.myPoints)!=0 ):
-            self.drawOnCanvas(self.myPoints)
+        self.drawOnCanvas(self.myPoints)
 
 
         # read image in BGR format
@@ -279,11 +347,17 @@ class PaintScreen(QtWidgets.QWidget):
 
     def drawOnCanvas(self,myPoints):
         
-    
-        if(self.drawing):
-            
-            self.image = cv2.imread(BACKGROUND)
         
+        self.image =  np.where(                    # Make visable the paint brush with background
+
+            self.image[:,:][:,:,:] == 0 ,  # See wich pixels is not the paint brush image == black      
+            255,                           # If the pixel is black put the color of background
+            self.image                     # dont need to change de pixel because its the paint brush image  
+        )
+
+    
+        if(self.drawing and len(self.myPoints)!=0):
+            
             for point in myPoints:       # X        Y            Size                              Color
 
                 if(self.toErase == False):
@@ -298,7 +372,7 @@ class PaintScreen(QtWidgets.QWidget):
                     else:
 
                         cv2.circle(self.image, (point[0], point[1]), point[3], point[2] , cv2.FILLED)
-                      
+        
     def findColor(self,img,paintBrush,correntColor):
     
 
@@ -308,33 +382,27 @@ class PaintScreen(QtWidgets.QWidget):
       
         cor = [self.ui.blue_channel.value(), self.ui.green_channel.value(),self.ui.red_channel.value()]
 
-        for color in paintBrush:
-            lower = np.array(color[0:3])
-            upper = np.array(color[3:6])
-            mask = cv2.inRange(imgHSV,lower,upper)
-            x,y= self.getContours(mask)
-            
-            if(self.toErase == False):
-
-                if (x!=0 and y!=0):  # Mem count colocar quanl é a cor atual
-                    newPoint.append([x,y,cor,size])
-                    self.idPointColor = self.idPointColor + 1
-
-            else:
+        if(self.drawing):
+            for color in paintBrush:
+                lower = np.array(color[0:3])                       # Read the Hue min, Saturation min and Value min from paintBrush array
+                upper = np.array(color[3:6])                       # Read the Hue max, Saturation max and Value max from paintBrush array
+                mask = cv2.inRange(imgHSV,lower,upper)             # Only take the color that is in this range  lower and upper , in other words the paint brush 
+                x,y= self.getContours(mask)                        # Take the position x and y from paint brush
+                self.image = cv2.bitwise_and(img, img, mask=mask)  # Just take the paint brush image from the camera
                 
-                cv2.circle(self.image,(x,y),size, [255,255,255],cv2.FILLED) # Cursor do Pincel 
-                self.eraseX = x
-                self.eraseY = y
-                return None 
+                if(self.toErase == False):
+
+                    if (x!=0 and y!=0):  # Create the new point that i am painting
+                        newPoint.append([x,y,cor,size])
+
+                else:
+                    
+                    cv2.circle(self.image,(x,y),size, [255,255,255],cv2.FILLED) # Cursor do Pincel 
+                    self.eraseX = x
+                    self.eraseY = y
+                    return None 
 
         return newPoint
-
-    def take_photo(self):
-            
-        self.image =  cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
-        cv2.imwrite("./image/drawing/draw.jpg", self.image)
-        self.ui.screen.setPixmap(QtGui.QPixmap("./image/drawing/draw.jpg"))
-        #self.ui.editar.setEnabled(True)
 
     def controlTimer(self):
         # if timer is stopped
@@ -348,13 +416,14 @@ class PaintScreen(QtWidgets.QWidget):
             
         # if timer is started
         else:
+            print("Parando a gravação")
             # stop timer
             self.timer.stop()
             # release video capture
             self.cap.release()
+            
             # update control_bt text
-            self.take_photo()
-
+            
     def canIDraw(self):
     
         if(self.drawing == False):
@@ -364,7 +433,7 @@ class PaintScreen(QtWidgets.QWidget):
         
         else:
 
-            self.drawing = False           
+            self.drawing = False
             self.controlTimer()
 
     def getContours(self,img):
